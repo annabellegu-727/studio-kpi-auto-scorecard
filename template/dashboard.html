@@ -1,79 +1,301 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="zh-CN">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2775.1">
-  <style type="text/css">
-    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 13.0px Courier; -webkit-text-stroke: #000000}
-    span.s1 {font-kerning: none}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Innovation Studio GCG · KPI Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+  :root{
+    --ibm-blue:#0F62FE; --cyan:#33B1FF; --ink:#161616; --ink2:#525252;
+    --line:#E0E0E0; --bg2:#F4F4F4; --green:#24A148; --red:#DA1E28;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg2);color:var(--ink);
+    font-family:"IBM Plex Sans","Helvetica Neue",Helvetica,"PingFang SC","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1360px;margin:0 auto;padding:28px 24px 40px;}
+  .head{background:#fff;border-left:6px solid var(--ibm-blue);padding:22px 26px;display:flex;
+    justify-content:space-between;align-items:flex-start;gap:24px;flex-wrap:wrap;}
+  .head h1{margin:0;font-size:26px;font-weight:600;letter-spacing:-.2px;}
+  .head .tagline{display:inline-block;margin-left:10px;padding:2px 8px;background:#EDF5FF;
+    color:var(--ibm-blue);font-size:11.5px;border-radius:2px;vertical-align:2px;}
+  .asof{text-align:right;font-size:12px;color:var(--ink2);line-height:1.6;flex:0 0 auto;min-width:230px;}
+  .asof b{display:block;font-size:20px;color:var(--ink);font-weight:600;letter-spacing:.5px;}
+  .tiles{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--line);margin-top:1px;}
+  .tile{background:#fff;padding:16px 14px 14px;position:relative;}
+  .tile .k{font-size:11.5px;color:var(--ink2);line-height:1.35;min-height:34px;padding-right:34px;}
+  .tile .v{font-size:26px;font-weight:600;letter-spacing:-.5px;margin-top:6px;}
+  .tile .t{font-size:11.5px;color:var(--ink2);margin-top:6px;}
+  .tile .flag{position:absolute;top:14px;right:12px;font-size:10.5px;padding:2px 6px;border-radius:2px;}
+  .ok{background:#DEFBE6;color:#0E6027;} .off{background:#FFF1F1;color:#A2191F;}
+  .sec{background:#fff;margin-top:16px;padding:20px 22px 8px;}
+  .sec-h{display:flex;align-items:baseline;gap:10px;margin-bottom:2px;}
+  .sec-h .no{width:22px;height:22px;border-radius:50%;background:var(--ink);color:#fff;
+    font-size:11.5px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
+  .sec-h h2{margin:0;font-size:15px;font-weight:600;}
+  .sec-h .note{font-size:11.5px;color:var(--ink2);}
+  .chart{width:100%;height:300px;}
+  .chart.tall{height:340px;}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);margin-top:16px;}
+  .grid3 .sec{margin-top:0;padding:18px 18px 6px;}
+  .gap-card{padding:6px 4px 18px;}
+  .gap-row{display:flex;justify-content:space-between;font-size:12px;color:var(--ink2);margin-bottom:6px;}
+  .gap-big{font-size:30px;font-weight:600;letter-spacing:-.5px;margin:6px 0 2px;}
+  .gap-big small{font-size:13px;font-weight:500;color:var(--ink2);}
+  .prog{position:relative;height:22px;background:#F4F4F4;margin:14px 0 6px;}
+  .prog .fill{position:absolute;left:0;top:0;bottom:0;background:var(--cyan);}
+  .prog .tgt{position:absolute;top:-6px;bottom:0;width:2px;background:var(--red);}
+  .prog .tgt span{position:absolute;top:-16px;left:-2px;font-size:10px;color:var(--red);white-space:nowrap;}
+  .gap-note{font-size:11.5px;color:var(--ink2);line-height:1.65;margin-top:10px;}
+  .gap-note b{color:var(--ink);}
+  .foot{margin-top:18px;background:#fff;padding:18px 22px;border-top:3px solid var(--ibm-blue);}
+  .foot h3{margin:0 0 10px;font-size:13px;font-weight:600;}
+  .foot ol{margin:0;padding-left:18px;font-size:12px;color:var(--ink2);line-height:1.85;}
+  .foot code{background:#F4F4F4;padding:1px 5px;font-size:11.5px;color:var(--ink);}
+  #fallback{display:none;background:#FFF1F1;border-left:4px solid var(--red);padding:14px 18px;
+    font-size:13px;color:#A2191F;margin-top:16px;line-height:1.7;}
+  .btn{display:inline-flex;align-items:center;gap:6px;margin-top:12px;padding:7px 14px;
+    border:1px solid var(--ibm-blue);background:#fff;color:var(--ibm-blue);font-size:12.5px;
+    border-radius:2px;cursor:pointer;font-family:inherit;transition:background .15s;}
+  .btn:hover{background:var(--ibm-blue);color:#fff;}
+  #refMsg{margin-top:6px;font-size:11px;line-height:1.6;color:var(--ink2);max-width:250px;margin-left:auto;}
+  @media (max-width:1180px){
+    .tiles{grid-template-columns:repeat(4,1fr);}
+    .grid3{grid-template-columns:1fr;}
+  }
+  @media (max-width:640px){
+    .tiles{grid-template-columns:repeat(2,1fr);}
+    .head h1{font-size:21px;}
+  }
+</style>
 </head>
 <body>
-<p class="p1"><span class="s1">&lt;!DOCTYPE html&gt;</span></p>
-<p class="p1"><span class="s1">&lt;html lang="en"&gt;</span></p>
-<p class="p1"><span class="s1">&lt;head&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;meta charset="UTF-8"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;title&gt;Innovation Studio GCG Weekly KPI Dashboard&lt;/title&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;style&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>body {font-family: Arial, sans-serif; padding:30px; background:#f5f7fa;}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>.container {max-width:1200px; margin:0 auto;}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>h1 {color:#0f4c81; text-align:center;}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>.week-info {text-align:center; margin-bottom:30px; color:#555;}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>.grid {display:grid; grid-template-columns: repeat(3,1fr); gap:20px;}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>.kpi-card {background:#fff; padding:24px; border-radius:12px; box-shadow:0 2px 8px #00000014;}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>.kpi-title {font-size:16px; color:#333; margin-bottom:12px; font-weight:600;}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>.kpi-value {font-size:32px; font-weight:bold; margin:8px 0;}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>.target-text {font-size:14px; color:#666;}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>.ok {color:#00994c;}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>.nok {color:#d93025;}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/style&gt;</span></p>
-<p class="p1"><span class="s1">&lt;/head&gt;</span></p>
-<p class="p1"><span class="s1">&lt;body&gt;</span></p>
-<p class="p1"><span class="s1">&lt;div class="container"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;h1&gt;Innovation Studio GCG Weekly KPI Dashboard&lt;/h1&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="week-info"&gt;Data as of: {{ week_label }}&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="grid"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="kpi-card"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="kpi-title"&gt;Engagement &amp; Utilization&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="kpi-value {% if data.utilization &gt;= 0.75 %}ok{% else %}nok{% endif %}"&gt;{{ "%.0f%%"|format(data.utilization*100) }}&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="target-text"&gt;Target: 75%&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="kpi-card"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="kpi-title"&gt;% of Marketing Originated Engs&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="kpi-value {% if data.mkt_pct &gt;= 0.30 %}ok{% else %}nok{% endif %}"&gt;{{ "%.1f%%"|format(data.mkt_pct*100) }}&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="target-text"&gt;Target: 30%&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="kpi-card"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="kpi-title"&gt;Progression Rate&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="kpi-value {% if data.prog_rate &gt;= 0.40 %}ok{% else %}nok{% endif %}"&gt;{{ "%.1f%%"|format(data.prog_rate*100) }}&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="target-text"&gt;Target: 40%&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="kpi-card"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="kpi-title"&gt;Horizon Account (within 100 Miles)&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="kpi-value {% if data.horizon_100_covered &gt;= data.horizon_target %}ok{% else %}nok{% endif %}"&gt;{{ data.horizon_100_covered }} / {{ data.horizon_100_total }}&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="target-text"&gt;Target: 4.2 accounts (35% penetration)&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="kpi-card"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="kpi-title"&gt;$M Opps Progressed&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="kpi-value {% if data.opp_prog_m &gt;= data.target_prog_m %}ok{% else %}nok{% endif %}"&gt;{{ data.opp_prog_m }}&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="target-text"&gt;Dynamic Target: {{ data.target_prog_m }}&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="kpi-card"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="kpi-title"&gt;$M Opps Created&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="kpi-value {% if data.opp_create_m &gt;= data.target_create_m %}ok{% else %}nok{% endif %}"&gt;{{ data.opp_create_m }}&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="target-text"&gt;Dynamic Target: {{ data.target_create_m }}&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="kpi-card"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="kpi-title"&gt;$M Opps Won&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="kpi-value {% if data.opp_won_m &gt;= data.target_won_m %}ok{% else %}nok{% endif %}"&gt;{{ data.opp_won_m }}&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="target-text"&gt;Dynamic Target: {{ data.target_won_m }}&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1">&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1">&lt;/body&gt;</span></p>
-<p class="p1"><span class="s1">&lt;/html&gt;</span></p>
+<div class="wrap">
+  <div class="head">
+    <div>
+      <h1>Innovation Studio GCG · 指标看板<span class="tagline">{{ studio }}</span></h1>
+    </div>
+    <div class="asof">
+      <b>Wk {{ week_label }}</b>
+      数据截止 {{ as_of }}<br />历史序列 {{ weeks }} 周
+      <div><button id="refBtn" class="btn">刷新数据</button></div>
+      <div id="refMsg"></div>
+    </div>
+  </div>
+
+  <div class="tiles" id="tiles"></div>
+
+  <div class="sec">
+    <div class="sec-h"><span class="no">1</span><h2># Engagement &amp; Utilization</h2>
+      <span class="note">柱 = YTD 交付场次，线 = Utilization（目标 75%）</span></div>
+    <div id="c1" class="chart tall"></div>
+  </div>
+
+  <div class="grid3">
+    <div class="sec">
+      <div class="sec-h"><span class="no">2</span><h2>% of Marketing Org Engs</h2></div>
+      <div id="c2" class="chart"></div>
+    </div>
+    <div class="sec">
+      <div class="sec-h"><span class="no">3</span><h2>Progression Rate</h2></div>
+      <div id="c3" class="chart"></div>
+    </div>
+    <div class="sec">
+      <div class="sec-h"><span class="no">4</span><h2>Horizon Account</h2></div>
+      <div class="gap-card">
+        <div class="gap-row"><span>已覆盖账户（within 100 miles）</span><span>目标 35%</span></div>
+        <div class="gap-big">{{ KPI[3].v }} <small> · {{ KPI[3].pct }}%</small></div>
+        <div class="prog">
+          <div class="fill" style="width:{{ KPI[3].pct }}%"></div>
+          <div class="tgt" style="left:35%"><span>35%</span></div>
+        </div>
+        <div class="gap-note">
+          <b>口径：</b>Horizon Accts Penetration within 100 miles，China 行。目标 35%，即 12 * 35% = 4.2 个。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid3">
+    <div class="sec">
+      <div class="sec-h"><span class="no">5</span><h2>$M Opps Progressed</h2></div>
+      <div id="c5" class="chart"></div>
+    </div>
+    <div class="sec">
+      <div class="sec-h"><span class="no">6</span><h2>$M Opps Create</h2></div>
+      <div id="c6" class="chart"></div>
+    </div>
+    <div class="sec">
+      <div class="sec-h"><span class="no">7</span><h2>$M Opps Won</h2></div>
+      <div id="c7" class="chart"></div>
+    </div>
+  </div>
+
+  <div id="fallback">图表库未加载（可能处于离线环境）。</div>
+
+  <div class="foot">
+    <h3>数据链路说明</h3>
+    <ol>
+      <li>历史序列（图表 1-7）来自 <code>Studio Internal_Goal Tracking.xlsx</code> 的 <code>Cumulative-breakdown</code>，按 <code>{{ studio }}</code> 行筛选。</li>
+      <li>本周卡片：Utilization 取自 Cumulative-breakdown 最新一行；Marketing %、Progression、Pipeline $M 取自 <code>Weekly Performance Scorecard.xlsx</code> 的 <code>Overall KPI Summary</code>（数据截止 {{ as_of }}）。</li>
+      <li>Horizon 取自 <code>Horizon Accts Penetration</code> 的 China 行（within 100 miles），每两周更新一次。</li>
+      <li>Pipeline $M 目标为动态值：target = BASE_FACTOR * YTD Engs（{{ weeks }} 周口径同源），本周目标已按当周场次重算。</li>
+      <li>Marketing % 在 Cumulative 表中 wk 1-8 为空，用 Marketing 场次 / YTD 场次补齐；Progression 空缺周沿用上一次已发布的 YTD 值（YTD 累计值在下次发布前保持不变）。</li>
+    </ol>
+  </div>
+</div>
+
+<script>
+(function(){
+try{
+  var KPI  = {{ KPI | tojson }};
+  var W    = {{ W | tojson }};
+  var ENG  = {{ ENG | tojson }};
+  var UTIL = {{ UTIL | tojson }};
+  var MKT  = {{ MKT | tojson }};
+  var PROG = {{ PROG | tojson }};
+  var PRG  = {{ PRG | tojson }};
+  var CRE  = {{ CRE | tojson }};
+  var WON  = {{ WON | tojson }};
+  var TPRG = {{ TPROG | tojson }};
+  var TCRE = {{ TCRE | tojson }};
+  var TWON = {{ TWON | tojson }};
+
+  var tiles = document.getElementById("tiles");
+  for (var i = 0; i < KPI.length; i++) {
+    var d = KPI[i];
+    var html = '<div class="tile"><span class="flag ' + d.s + '">' + d.label + '</span>';
+    html += '<div class="k">' + d.k + '</div><div class="v">' + d.v + '</div>';
+    html += '<div class="t">' + d.t + '</div></div>';
+    tiles.innerHTML += html;
+  }
+
+  if (typeof echarts === "undefined") {
+    document.getElementById("fallback").style.display = "block";
+    return;
+  }
+
+  var INK2 = "#525252", GRID = "#E8E8E8", BLUE = "#0F62FE", CYAN = "#33B1FF", RED = "#DA1E28";
+
+  function axisLabelStyle(step) {
+    return {color: INK2, fontSize: 9.5, hideOverlap: true,
+      interval: function(idx){ var n = W.length; return idx === 0 || idx === n - 1 || idx % step === 0; }};
+  }
+
+  var c1 = echarts.init(document.getElementById("c1"));
+  var maxEng = 1;
+  for (var k = 0; k < ENG.length; k++) { if (ENG[k] && ENG[k] > maxEng) maxEng = ENG[k]; }
+  c1.setOption({
+    backgroundColor: "transparent",
+    color: [BLUE, CYAN],
+    tooltip: {trigger: "axis", triggerOn: "click", renderMode: "richText", confine: true},
+    legend: {top: 0, right: 0, itemWidth: 14, itemHeight: 8, textStyle: {color: INK2, fontSize: 11.5}},
+    grid: {left: 8, right: 8, top: 30, bottom: 24, containLabel: true},
+    xAxis: {type: "category", data: W, axisLabel: axisLabelStyle(1),
+      axisLine: {lineStyle: {color: GRID}}, axisTick: {show: false}},
+    yAxis: [
+      {type: "value", min: 0, max: Math.ceil(maxEng * 1.1),
+        axisLabel: {color: INK2, fontSize: 11}, splitLine: {lineStyle: {color: GRID}}},
+      {type: "value", min: 0, max: 1,
+        axisLabel: {color: INK2, fontSize: 11, formatter: function(v){ return Math.round(v * 100) + "%"; }},
+        splitLine: {show: false}}
+    ],
+    series: [
+      {name: "# Engagement", type: "bar", yAxisIndex: 0, data: ENG,
+        itemStyle: {color: BLUE}, barWidth: "42%"},
+      {name: "Utilization", type: "line", yAxisIndex: 1, data: UTIL, smooth: true,
+        itemStyle: {color: CYAN}, lineStyle: {color: CYAN, width: 2.5},
+        symbolSize: 5, connectNulls: true,
+        markLine: {silent: true, symbol: "none",
+          lineStyle: {color: RED, type: "dashed", width: 1.5},
+          label: {color: RED, fontSize: 10.5, position: "insideStartTop", formatter: "目标 75%"},
+          data: [{yAxis: 0.75}]}}
+    ]
+  });
+
+  function pctChart(id, data, target, color, name) {
+    var el = echarts.init(document.getElementById(id));
+    el.setOption({
+      backgroundColor: "transparent",
+      tooltip: {trigger: "axis", triggerOn: "click", renderMode: "richText", confine: true,
+        valueFormatter: function(v){
+          return (v === null || v === undefined) ? "-" : (Math.round(v * 1000) / 10) + "%";
+        }},
+      grid: {left: 2, right: 14, top: 18, bottom: 12, containLabel: true},
+      xAxis: {type: "category", data: W, boundaryGap: false,
+        axisLabel: axisLabelStyle(4), axisLine: {lineStyle: {color: GRID}}, axisTick: {show: false}},
+      yAxis: {type: "value", min: 0, max: 1,
+        axisLabel: {color: INK2, fontSize: 10, formatter: function(v){ return Math.round(v * 100) + "%"; }},
+        splitLine: {lineStyle: {color: GRID}}},
+      series: [{name: name, type: "line", data: data, smooth: true, symbolSize: 4,
+        itemStyle: {color: color}, lineStyle: {color: color, width: 2.2}, connectNulls: true,
+        areaStyle: {color: color === BLUE ? "rgba(15,98,254,0.06)" : "rgba(51,177,255,0.08)"},
+        markLine: {silent: true, symbol: "none",
+          lineStyle: {color: RED, type: "dashed", width: 1.2},
+          label: {color: RED, fontSize: 9.5, position: "insideStartTop",
+            formatter: "目标 " + Math.round(target * 100) + "%"},
+          data: [{yAxis: target}]}}]
+    });
+    return el;
+  }
+
+  function moneyChart(id, data, targetArr) {
+    var el = echarts.init(document.getElementById(id));
+    el.setOption({
+      backgroundColor: "transparent",
+      tooltip: {trigger: "axis", triggerOn: "click", renderMode: "richText", confine: true,
+        valueFormatter: function(v){
+          return (v === null || v === undefined) ? "-" : "$" + v + "M";
+        }},
+      legend: {top: 0, right: 0, itemWidth: 12, itemHeight: 8, textStyle: {color: INK2, fontSize: 10}},
+      grid: {left: 2, right: 14, top: 24, bottom: 12, containLabel: true},
+      xAxis: {type: "category", data: W, boundaryGap: false,
+        axisLabel: axisLabelStyle(4), axisLine: {lineStyle: {color: GRID}}, axisTick: {show: false}},
+      yAxis: {type: "value",
+        axisLabel: {color: INK2, fontSize: 10, formatter: function(v){ return "$" + v; }},
+        splitLine: {lineStyle: {color: GRID}}},
+      series: [
+        {name: "Actual $M", type: "line", data: data, smooth: true, symbolSize: 4,
+          itemStyle: {color: BLUE}, lineStyle: {color: BLUE, width: 2.2},
+          areaStyle: {color: "rgba(15,98,254,0.06)"}},
+        {name: "Dynamic target", type: "line", data: targetArr, smooth: true, symbol: "none",
+          itemStyle: {color: RED}, lineStyle: {color: RED, type: "dashed", width: 1.3}}
+      ]
+    });
+    return el;
+  }
+
+  var charts = [
+    c1,
+    pctChart("c2", MKT, 0.30, BLUE, "% Marketing Org"),
+    pctChart("c3", PROG, 0.40, CYAN, "Progression Rate"),
+    moneyChart("c5", PRG, TPRG),
+    moneyChart("c6", CRE, TCRE),
+    moneyChart("c7", WON, TWON)
+  ];
+
+  var refBtn = document.getElementById("refBtn");
+  var refMsg = document.getElementById("refMsg");
+  if (refBtn) {
+    refBtn.addEventListener("click", function(){
+      refMsg.textContent = "静态页面，数据由 Python 重新生成后刷新即可。";
+    });
+  }
+
+  var timer = null;
+  window.addEventListener("resize", function(){
+    clearTimeout(timer);
+    timer = setTimeout(function(){
+      for (var j = 0; j < charts.length; j++) { if (charts[j]) charts[j].resize(); }
+    }, 120);
+  });
+} catch (err) {
+  console.error("Dashboard render failed:", err);
+  var box = document.getElementById("fallback");
+  if (box) { box.style.display = "block"; box.textContent = "图表渲染异常: " + err.message; }
+}
+})();
+</script>
 </body>
 </html>
