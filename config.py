@@ -107,10 +107,8 @@ BASE_FACTOR = {
 # Display precision
 UTILIZATION_PRECISION = 2
 
-# ----------------------------------------------------------------------------
-# Write-back switches
-# The tracker already holds this week's row (Cumulative-breakdown ends at 11.8),
-# so appending again would duplicate it. Keep both off unless you really need it.
-# ----------------------------------------------------------------------------
-WRITE_BACK_TRACKER = False
-MERGE_ENG_DETAILS = False
+# --------------------------
+# 写回逻辑全部交给 excel_writer.py 自动查重，不再使用手动开关
+# --------------------------
+# WEEK_LABEL 每次更新周修改这里，例如 "11.8", "11.15"
+WEEK_LABEL = "11.8"
